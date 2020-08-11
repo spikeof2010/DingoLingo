@@ -34,6 +34,7 @@ async def connect_to_channel(guild, dest_channel_name, ctx, switch=False, defaul
                     await guild.voice_client.disconnect()
                 except:
                     await send_message(ctx, config.NOT_CONNECTED_MESSAGE)
+
             await channel.connect()
             return
 
@@ -44,3 +45,21 @@ async def connect_to_channel(guild, dest_channel_name, ctx, switch=False, defaul
             await send_message(ctx, config.DEFAULT_CHANNEL_JOIN_FAILED)
     else:
         await send_message(ctx, config.CHANNEL_NOT_FOUND_MESSAGE + str(dest_channel_name))
+
+
+async def is_connected(ctx):
+    try:
+        voice_channel = ctx.guild.voice_client.channel
+        print(voice_channel)
+        return voice_channel
+    except:
+        return None
+
+
+# DB EXTRAS
+###############################################
+async def channel_exists(bot, channel_id):
+    if bot.get_channel(channel_id) is None:
+        return False
+    else:
+        return True

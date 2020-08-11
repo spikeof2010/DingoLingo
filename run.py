@@ -1,13 +1,17 @@
 import discord
 from discord.ext import commands
 
-from config.config import *
+from config import config
 from musicbot.audiocontroller import AudioController
+from musicbot import utils
 from musicbot.utils import guild_to_audiocontroller
 
+from musicbot.commands.general import General
 
-initial_extensions = ['musicbot.commands.music', 'musicbot.commands.general']
-bot = commands.Bot(command_prefix="!", pm_help=True)
+
+initial_extensions = ['musicbot.commands.music',
+                      'musicbot.commands.general', 'musicbot.button']
+bot = commands.Bot(command_prefix=config.BOT_PREFIX, pm_help=True)
 
 if __name__ == '__main__':
     for extension in initial_extensions:
@@ -19,29 +23,35 @@ if __name__ == '__main__':
 
 @bot.event
 async def on_ready():
-    print(STARTUP_MESSAGE)
-    await bot.change_presence(status=discord.Status.online, activity=discord.Game(name=" Music, type !help "))
+    print(config.STARTUP_MESSAGE)
+    await bot.change_presence(status=discord.Status.online, activity=discord.Game(name="Music, type {}help".format(config.BOT_PREFIX)))
+
+    config.BOT_VERISON = "0.9.5"
 
     for guild in bot.guilds:
-        print(guild.name)
-        await guild.me.edit(nick=DEFAULT_NICKNAME)
-        guild_to_audiocontroller[guild] = AudioController(bot, guild, DEFAULT_VOLUME)
+
+        guild_to_audiocontroller[guild] = AudioController(bot, guild)
+
+        await guild_to_audiocontroller[guild].register_voice_channel(guild.voice_channels[0])
+
+        await General.udisconnect(self=None, ctx=None, guild=guild)
+
         try:
             await guild_to_audiocontroller[guild].register_voice_channel(guild.voice_channels[0])
         except:
-            print("could not join "+guild.name)
-        
-    print(STARTUP_COMPLETE_MESSAGE)
+            pass
+
+        print("Joined {}".format(guild.name))
+
+    print(config.STARTUP_COMPLETE_MESSAGE)
 
 
 @bot.event
 async def on_guild_join(guild):
     print(guild.name)
-    guild_to_audiocontroller[guild] = AudioController(bot, guild, DEFAULT_VOLUME)
-    try:
-        await guild_to_audiocontroller[guild].register_voice_channel(guild.voice_channels[0])
-    except:
-        print("could not join "+guild.name)
+    guild_to_audiocontroller[guild] = AudioController(bot, guild)
+
+    await guild_to_audiocontroller[guild].register_voice_channel(guild.voice_channels[0])
 
 
-bot.run(token, bot=True, reconnect=True)
+bot.run(config.BOT_TOKEN, bot=True, reconnect=True)

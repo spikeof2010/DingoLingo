@@ -7,12 +7,14 @@ class Playlist:
     """Stores the youtube links of songs to be played and already played and offers basic operation on the queues"""
 
     def __init__(self):
-        # Stores the ytlinks os the songs in queue and the ones already played
+        # Stores the links os the songs in queue and the ones already played
         self.playque = deque()
         self.playhistory = deque()
 
         # A seperate history that remembers the names of the tracks that were played
         self.trackname_history = deque()
+
+        self.loop = False
 
     def __len__(self):
         return len(self.playque)
@@ -20,17 +22,25 @@ class Playlist:
     def add_name(self, trackname):
         self.trackname_history.append(trackname)
         if len(self.trackname_history) > config.MAX_TRACKNAME_HISTORY_LENGTH:
-                self.trackname_history.popleft()
+            self.trackname_history.popleft()
 
     def add(self, track):
         self.playque.append(track)
 
     def next(self):
+
         song_played = self.playque.popleft()
+
+        if self.loop == True:
+            if song_played != "Dummy":
+                self.playque.clear()
+                self.add(song_played)
+
         if song_played != "Dummy":
             self.playhistory.append(song_played)
             if len(self.playhistory) > config.MAX_HISTORY_LENGTH:
                 self.playhistory.popleft()
+
         if len(self.playque) == 0:
             return None
         return self.playque[0]
